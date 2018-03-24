@@ -30,14 +30,42 @@ public class MainActivity extends AppCompatActivity {
     //Addresse du module bluetooth
     private String deviceAddress = "00:14:03:06:53:C3";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    
+    public static ConfigActivity configapp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        
+        configapp = new ConfigActivity(this,"nlostble.config.xml");
+        
         long Delay = System.currentTimeMillis() + 5000;
         myHandler = new Handler();
         myHandler.postDelayed(myRunnable, 5000);
+    }
+    
+     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        
+        if (id == R.id.action_settings) {
+            Intent param = new Intent(MainActivity.this, ParamActivity.class);
+
+            startActivity(param);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
 
