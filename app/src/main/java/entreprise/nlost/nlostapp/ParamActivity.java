@@ -1,4 +1,4 @@
-package com.app.nlost.nlostbluetooth;
+package entreprise.nlost.nlostapp;
 
 import android.content.Intent;
 import android.os.Bundle;
