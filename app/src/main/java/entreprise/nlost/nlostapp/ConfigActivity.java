@@ -1,4 +1,4 @@
-package com.app.nlost.nlostbluetooth;
+package entreprise.nlost.nlostapp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -26,11 +26,6 @@ public class ConfigActivity {
         return config.getBoolean("NOTIFICATION_ACTIVATION", false);
     }
 
-    public String GetMAC_Adress()
-    {
-        return config.getString("MAC_ADRESSE", "__nomake__");
-    }
-
     public void SetActiveNotification(boolean a)
     {
         SharedPreferences.Editor edit = config.edit();
@@ -40,12 +35,4 @@ public class ConfigActivity {
         edit.commit();
     }
 
-    public void SetMAC_Adress(String a)
-    {
-        SharedPreferences.Editor edit = config.edit();
-
-        edit.putString("MAC_ADRESSE", a);
-
-        edit.commit();
-    }
 }
