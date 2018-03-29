@@ -1,8 +1,10 @@
 package entreprise.nlost.nlostapp;
 
+import android.app.Notification;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,42 +32,18 @@ public class MainActivity extends AppCompatActivity {
     //Addresse du module bluetooth
     private String deviceAddress = "00:14:03:06:53:C3";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-    
-    public static ConfigActivity configapp;
+    BluetoothSocket bluetoothSocket = null;
+    boolean isConnectedBool = true;
+    int newState;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        
-        configapp = new ConfigActivity(this,"nlostble.config.xml");
-        
-        long Delay = System.currentTimeMillis() + 5000;
         myHandler = new Handler();
-        myHandler.postDelayed(myRunnable, 5000);
-    }
-    
-     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+        myHandler.postDelayed(myRunnable, 10000);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        
-        if (id == R.id.action_settings) {
-            Intent param = new Intent(MainActivity.this, ParamActivity.class);
-
-            startActivity(param);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
 
@@ -90,32 +68,46 @@ public class MainActivity extends AppCompatActivity {
 
 
                     //Check si l'adresse est valide
-
                     if (deviceAddress.equals(bluetoothDevice.getAddress())) {
 
-                        BluetoothSocket bluetoothSocket = null;
+                        bluetoothSocket = null;
                         try {
                             bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
                         } catch (IOException e1) {
 
                         }
-                        try {
-                            bluetoothSocket.connect();
-                            Toast.makeText(MainActivity.this, "Founded", Toast.LENGTH_SHORT).show();
-
-                        } catch (IOException e) {
-                            NotificationGenerator.OpenActivityNotification(getApplicationContext());
-                        }
 
                     }
-
-
-                    Toast.makeText(MainActivity.this, "Tick", Toast.LENGTH_SHORT).show();
-                    //}
-                    myHandler.postDelayed(this, 5000);
+                    Connection();
+                    Toast.makeText(MainActivity.this, "Je me connecte", Toast.LENGTH_SHORT).show();
 
                 }
+
+                myHandler.postDelayed(this, 10000);
             }
         };
+    }
+    public void Connection(){
+        if (bluetoothSocket.isConnected() == false){
+            try {
+                bluetoothSocket.connect();
+                Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
+                //isConnectedBool = true;
+                //if (!bluetoothSocket.isConnected()){
+                //    NotificationGenerator.OpenActivityNotification(this);
+                //}
+            } catch (IOException e) {
+                //isConnectedBool = false;
+                Toast.makeText(MainActivity.this, "Je lis le Catch", Toast.LENGTH_SHORT).show();
+                try {
+                    bluetoothSocket.close();
+                    Toast.makeText(MainActivity.this, "Je Ferme le bluetooth", Toast.LENGTH_SHORT).show();
+                } catch (IOException f) {}
+
+            }
+            return;
+
+        }
+
     }
 }
