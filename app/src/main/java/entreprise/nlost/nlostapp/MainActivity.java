@@ -47,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         /*myHandler = new Handler();
         myHandler.postDelayed(myRunnable, 5000);*/
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        //Check si l'utilisateur a activé le bluetooth sinon l'activer
+        if (!bluetoothAdapter.isEnabled()) {
+            bluetoothAdapter.enable();
+        }
+
         buttonConnect = findViewById(R.id.button);
         buttonDisconnect= findViewById(R.id.button2);
         buttonLancerLaProcedure = findViewById(R.id.button3);
