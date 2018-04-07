@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
                 }
                 else
-                    Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Je suis Déconnecté", Toast.LENGTH_SHORT).show();
             }
         });
         buttonLancerLaProcedure.setOnClickListener(new View.OnClickListener() {
