@@ -113,61 +113,67 @@ public class MainActivity extends AppCompatActivity {
         buttonLancerLaProcedure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                while (true) {
-                    Toast.makeText(MainActivity.this, "While est en route", Toast.LENGTH_SHORT).show();
-                    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                    //Check si l'utilisateur a activé le bluetooth sinon l'activer
-                    if (!bluetoothAdapter.isEnabled()) {
-                        bluetoothAdapter.enable();
-                    }
-
-                    devices = bluetoothAdapter.getBondedDevices();
-                    for (BluetoothDevice bluetoothDevice : devices) {
-
-
-                        //Check si l'adresse est valide
-                        if (deviceAddress.equals(bluetoothDevice.getAddress())) {
-
-                            bluetoothSocket = null;
-                            try {
-                                bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                            } catch (IOException e1) {
-
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true) {
+                            //Toast.makeText(MainActivity.this, "While est en route", Toast.LENGTH_SHORT).show();
+                            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                            //Check si l'utilisateur a activé le bluetooth sinon l'activer
+                            if (!bluetoothAdapter.isEnabled()) {
+                                bluetoothAdapter.enable();
                             }
 
-                        }
-                    }
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        bluetoothSocket.connect();
-                        Toast.makeText(MainActivity.this, "Je suis connecté", Toast.LENGTH_SHORT).show();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        NotificationGenerator.OpenActivityNotification(MainActivity.this);
+                            devices = bluetoothAdapter.getBondedDevices();
+                            for (BluetoothDevice bluetoothDevice : devices) {
 
-                    }
+
+                                //Check si l'adresse est valide
+                                if (deviceAddress.equals(bluetoothDevice.getAddress())) {
+
+                                    bluetoothSocket = null;
+                                    try {
+                                        bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                                    } catch (IOException e1) {
+
+                                    }
+
+                                }
+                            }
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                bluetoothSocket.connect();
+                                //Toast.makeText(MainActivity.this, "Je suis connecté", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                NotificationGenerator.OpenActivityNotification(MainActivity.this);
+
+                            }
 //                    if (bluetoothSocket.isConnected() == true){
 //                        Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
 //                    }
 //                    else
 //                        Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
 
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                bluetoothSocket.close();
+                                //Toast.makeText(MainActivity.this, "Je me déconnecte", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                    try {
-                        bluetoothSocket.close();
-                        Toast.makeText(MainActivity.this, "Je me déconnecte", Toast.LENGTH_SHORT).show();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+
+                }).start();
             }
         });
 
