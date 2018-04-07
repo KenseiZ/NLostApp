@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">NLost App</string>
     <string name="button">Button</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="lancer_la_procedure">Lancer La Procedure</string>
 </resources>

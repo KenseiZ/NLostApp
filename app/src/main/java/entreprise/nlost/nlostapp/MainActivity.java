@@ -38,24 +38,147 @@ public class MainActivity extends AppCompatActivity {
     int newState;
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
-
+    Button buttonConnect;
+    Button buttonDisconnect;
+    Button buttonLancerLaProcedure;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        myHandler = new Handler();
-        myHandler.postDelayed(myRunnable, 5000);
+        /*myHandler = new Handler();
+        myHandler.postDelayed(myRunnable, 5000);*/
+        buttonConnect = findViewById(R.id.button);
+        buttonDisconnect= findViewById(R.id.button2);
+        buttonLancerLaProcedure = findViewById(R.id.button3);
+        buttonConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                //Check si l'utilisateur a activé le bluetooth sinon l'activer
+                if (!bluetoothAdapter.isEnabled()) {
+                    bluetoothAdapter.enable();
+                }
 
+                devices = bluetoothAdapter.getBondedDevices();
+                for (BluetoothDevice bluetoothDevice : devices) {
+
+
+                    //Check si l'adresse est valide
+                    if (deviceAddress.equals(bluetoothDevice.getAddress())) {
+
+                        bluetoothSocket = null;
+                        try {
+                            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                        } catch (IOException e1) {
+
+                        }
+
+                    }
+                }
+                try {
+                    bluetoothSocket.connect();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (bluetoothSocket.isConnected() == true){
+                    Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+            }
+        });
+        buttonDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    bluetoothSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                }
+                if (bluetoothSocket.isConnected() == true){
+                    Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+            }
+        });
+        buttonLancerLaProcedure.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                while (true) {
+                    Toast.makeText(MainActivity.this, "While est en route", Toast.LENGTH_SHORT).show();
+                    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    //Check si l'utilisateur a activé le bluetooth sinon l'activer
+                    if (!bluetoothAdapter.isEnabled()) {
+                        bluetoothAdapter.enable();
+                    }
+
+                    devices = bluetoothAdapter.getBondedDevices();
+                    for (BluetoothDevice bluetoothDevice : devices) {
+
+
+                        //Check si l'adresse est valide
+                        if (deviceAddress.equals(bluetoothDevice.getAddress())) {
+
+                            bluetoothSocket = null;
+                            try {
+                                bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                            } catch (IOException e1) {
+
+                            }
+
+                        }
+                    }
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        bluetoothSocket.connect();
+                        Toast.makeText(MainActivity.this, "Je suis connecté", Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        NotificationGenerator.OpenActivityNotification(MainActivity.this);
+
+                    }
+//                    if (bluetoothSocket.isConnected() == true){
+//                        Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else
+//                        Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        bluetoothSocket.close();
+                        Toast.makeText(MainActivity.this, "Je me déconnecte", Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+    }
+
+    @Override
+    protected void onDestroy(){
+        //myHandler.removeCallbacks(myRunnable);
+        super.onDestroy();
     }
 
 
 
+    /*private Handler myHandler;
+    private Runnable myRunnable;*/
 
-
-    private Handler myHandler;
-    private Runnable myRunnable;
-
-    {
+    /*{
         myRunnable = new Runnable() {
             @Override
             public void run() {
@@ -124,5 +247,5 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
+    }*/
 }
