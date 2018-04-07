@@ -1,66 +1,115 @@
 package entreprise.nlost.nlostapp;
 
 import android.app.Notification;
-import android.bluetooth.BluetoothA2dp;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.IntentFilter;
-import android.nfc.Tag;
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.NotificationCompat;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
-import android.content.Intent;
-import android.os.Handler;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
-import java.io.*;
-
-import me.aflak.bluetooth.Bluetooth;
+import java.nio.channels.Channel;
 
 public class MainActivity extends AppCompatActivity {
-    private final static int REQUEST_CODE_ENABLE_BLUETOOTH = 0;
+
+    public static ConfigActivity configapp;
+
     private Set<BluetoothDevice> devices;
     //Addresse du module bluetooth
     private String deviceAddress = "00:14:03:06:53:C3";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     BluetoothSocket bluetoothSocket = null;
-    boolean isConnectedBool = true;
-    int newState;
-    InputStream tmpIn = null;
-    OutputStream tmpOut = null;
     Button buttonConnect;
     Button buttonDisconnect;
     Button buttonLancerLaProcedure;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        /*myHandler = new Handler();
-        myHandler.postDelayed(myRunnable, 5000);*/
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        configapp = new ConfigActivity(this,"nlostble.config.xml");
+
+
+        StartBLE();
+
+        if(configapp.GetActiveNotification())
+        {
+            Toast.makeText(MainActivity.this, "Les notifications sont activées !", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(MainActivity.this, "Les notifications ne sont pas activées !", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent param = new Intent(MainActivity.this, ParamActivity.class);
+
+            startActivity(param);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    void StartBLE()
+    {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         //Check si l'utilisateur a activé le bluetooth sinon l'activer
         if (!bluetoothAdapter.isEnabled()) {
             bluetoothAdapter.enable();
         }
 
-        buttonConnect = findViewById(R.id.button);
-        buttonDisconnect= findViewById(R.id.button2);
-        buttonLancerLaProcedure = findViewById(R.id.button3);
+        buttonConnect = (Button)findViewById(R.id.button);
+        buttonDisconnect= (Button)findViewById(R.id.button2);
+        buttonLancerLaProcedure = (Button)findViewById(R.id.button3);
+
         buttonConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                //Check si l'utilisateur a activé le bluetooth sinon l'activer
+
                 if (!bluetoothAdapter.isEnabled()) {
                     bluetoothAdapter.enable();
                 }
@@ -87,11 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (bluetoothSocket.isConnected() == true){
-                    Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
-                }
-                else
-                    Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+
             }
         });
         buttonDisconnect.setOnClickListener(new View.OnClickListener() {
@@ -103,11 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
 
                 }
-                if (bluetoothSocket.isConnected() == true){
-                    Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
-                }
-                else
-                    Toast.makeText(MainActivity.this, "Je suis Déconnecté", Toast.LENGTH_SHORT).show();
+
             }
         });
         buttonLancerLaProcedure.setOnClickListener(new View.OnClickListener() {
@@ -117,9 +158,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         while (true) {
-                            //Toast.makeText(MainActivity.this, "While est en route", Toast.LENGTH_SHORT).show();
+
                             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                            //Check si l'utilisateur a activé le bluetooth sinon l'activer
+
                             if (!bluetoothAdapter.isEnabled()) {
                                 bluetoothAdapter.enable();
                             }
@@ -147,17 +188,19 @@ public class MainActivity extends AppCompatActivity {
                             }
                             try {
                                 bluetoothSocket.connect();
-                                //Toast.makeText(MainActivity.this, "Je suis connecté", Toast.LENGTH_SHORT).show();
+
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                NotificationGenerator.OpenActivityNotification(MainActivity.this);
+
+                                if(configapp.GetActiveNotification())
+                                {
+                                    NotificationGenerator.OpenActivityNotification(MainActivity.this);
+                                }
+
+
 
                             }
-//                    if (bluetoothSocket.isConnected() == true){
-//                        Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else
-//                        Toast.makeText(MainActivity.this, "Je suis Déconnété", Toast.LENGTH_SHORT).show();
+//
 
                             try {
                                 Thread.sleep(5000);
@@ -166,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             try {
                                 bluetoothSocket.close();
-                                //Toast.makeText(MainActivity.this, "Je me déconnecte", Toast.LENGTH_SHORT).show();
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -176,8 +219,10 @@ public class MainActivity extends AppCompatActivity {
                 }).start();
             }
         });
-
     }
+
+}
+
 
     @Override
     protected void onDestroy(){
