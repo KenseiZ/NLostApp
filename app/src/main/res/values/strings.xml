@@ -3,5 +3,6 @@
     <string name="button">Button</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
+    <string name="action_settings">Settings</string>
     <string name="lancer_la_procedure">Lancer La Procedure</string>
 </resources>
