@@ -11,8 +11,11 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.ColorInt;
+import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +25,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -40,41 +44,48 @@ public class MainActivity extends AppCompatActivity {
     private String deviceAddress = "00:14:03:06:53:C3";
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     BluetoothSocket bluetoothSocket = null;
-    Button buttonConnect;
-    Button buttonDisconnect;
-    Button buttonLancerLaProcedure;
-
+    boolean etatDeLaConnexion = false;
+    TextView textConnexion;
+    TextView textNotification;
+    boolean OneNotification = true;
+    boolean LaunchOneTime = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        textConnexion = findViewById(R.id.textView7);
+        textNotification = findViewById(R.id.textView5);
 
-        configapp = new ConfigActivity(this,"nlostble.config.xml");
+        /*Declaration de l'activité de configuration*/
+        configapp = new ConfigActivity(this, "nlostble.config.xml");
+        /*Execution au démarrage (Une seule fois)*/
+        if(LaunchOneTime == true){
+            StartBLE();
+            EtatDeLaConnexion();
+            EtatDesNotifications();
+            LaunchOneTime = false;
+        }
+        LaunchOneTime = false;
 
-
-        StartBLE();
-
-        if(configapp.GetActiveNotification())
-        {
+        /*VERSION COMMERCIALE : Plus besoin de Toast*/
+        /*if (configapp.GetActiveNotification()) {
             Toast.makeText(MainActivity.this, "Les notifications sont activées !", Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
+        } else {
             Toast.makeText(MainActivity.this, "Les notifications ne sont pas activées !", Toast.LENGTH_SHORT).show();
-        }
+        }*/
 
 
     }
-
+    /*Clique sur le menu*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
+    /*Clique sur les options*/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -93,216 +104,133 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    void StartBLE()
-    {
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        //Check si l'utilisateur a activé le bluetooth sinon l'activer
-        if (!bluetoothAdapter.isEnabled()) {
-            bluetoothAdapter.enable();
-        }
-
-        buttonConnect = (Button)findViewById(R.id.button);
-        buttonDisconnect= (Button)findViewById(R.id.button2);
-        buttonLancerLaProcedure = (Button)findViewById(R.id.button3);
-
-        buttonConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-                if (!bluetoothAdapter.isEnabled()) {
-                    bluetoothAdapter.enable();
-                }
-
-                devices = bluetoothAdapter.getBondedDevices();
-                for (BluetoothDevice bluetoothDevice : devices) {
-
-
-                    //Check si l'adresse est valide
-                    if (deviceAddress.equals(bluetoothDevice.getAddress())) {
-
-                        bluetoothSocket = null;
-                        try {
-                            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                        } catch (IOException e1) {
-
-                        }
-
-                    }
-                }
-                try {
-                    bluetoothSocket.connect();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        buttonDisconnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    bluetoothSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                }
-
-            }
-        });
-        buttonLancerLaProcedure.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true) {
-
-                            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-                            if (!bluetoothAdapter.isEnabled()) {
-                                bluetoothAdapter.enable();
-                            }
-
-                            devices = bluetoothAdapter.getBondedDevices();
-                            for (BluetoothDevice bluetoothDevice : devices) {
-
-
-                                //Check si l'adresse est valide
-                                if (deviceAddress.equals(bluetoothDevice.getAddress())) {
-
-                                    bluetoothSocket = null;
-                                    try {
-                                        bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                                    } catch (IOException e1) {
-
-                                    }
-
-                                }
-                            }
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                bluetoothSocket.connect();
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-
-                                if(configapp.GetActiveNotification())
-                                {
-                                    NotificationGenerator.OpenActivityNotification(MainActivity.this);
-                                }
-
-
-
-                            }
-//
-
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                bluetoothSocket.close();
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                }).start();
-            }
-        });
-    }
-
-}
-
-
-    @Override
-    protected void onDestroy(){
-        //myHandler.removeCallbacks(myRunnable);
-        super.onDestroy();
-    }
-
-
-
-    /*private Handler myHandler;
-    private Runnable myRunnable;*/
-
-    /*{
-        myRunnable = new Runnable() {
+    /*Verification de l'etat de la Connexion et changement du texte de statut*/
+    void EtatDeLaConnexion() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                //Check si l'utilisateur a activé le bluetooth sinon l'activer
-                if (!bluetoothAdapter.isEnabled()) {
-                    bluetoothAdapter.enable();
+                    if (etatDeLaConnexion == true) {
+                        textConnexion.setText("Connectée");
+                        textConnexion.setTextColor(Color.GREEN);
+                    }
+                    else {
+                        textConnexion.setText("Déconnectée");
+                        textConnexion.setTextColor(Color.RED);
+                    }
                 }
 
-                devices = bluetoothAdapter.getBondedDevices();
-                for (BluetoothDevice bluetoothDevice : devices) {
+        });
+    }
+    /*Boucle des Notifications pour verifier l'etat des notifications*/
+    void EtatDesNotifications(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    BoucleEtatDesNotifications();
+                }
+            }
+        }).start();
+
+    }
+    /*Verification de l'Etat des notifications et changement du texte de statut*/
+    void BoucleEtatDesNotifications(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (configapp.GetActiveNotification()) {
+                    textNotification.setText("Activées");
+                    textNotification.setTextColor(Color.GREEN);
+                }
+                else {
+                    textNotification.setText("Désactivées");
+                    textNotification.setTextColor(Color.RED);
+                }
+            }
+        });
+    }
+    /*Demarrage du processus de connexion du Bluetooth*/
+    void StartBLE() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+
+                    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    /*Demarre automatiquement le Bluetooth*/
+                    if (!bluetoothAdapter.isEnabled()) {
+                        bluetoothAdapter.enable();
+                    }
+
+                    devices = bluetoothAdapter.getBondedDevices();
+                    for (BluetoothDevice bluetoothDevice : devices) {
 
 
-                    //Check si l'adresse est valide
-                    if (deviceAddress.equals(bluetoothDevice.getAddress())) {
+                        //Check si l'adresse est valide
+                        if (deviceAddress.equals(bluetoothDevice.getAddress())) {
 
-                        bluetoothSocket = null;
-                        try {
-                            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
-                        } catch (IOException e1) {
+                            bluetoothSocket = null;
+                            try {
+                                bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID);
+                            } catch (IOException e1) {
+
+                            }
 
                         }
-
                     }
-                     tmpIn = null;
-                     tmpOut = null;
-                    Connection();
-                    Toast.makeText(MainActivity.this, "Je me connecte", Toast.LENGTH_SHORT).show();
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    /*Processus de connexion*/
+                    try {
+                        bluetoothSocket.connect();
+                        etatDeLaConnexion = true;
+                        OneNotification = true;
+                    }
+                    /*Processus en cas d'echec de connexion (Clé non connectée)*/
+                    catch (IOException e) {
+                        e.printStackTrace();
+                        etatDeLaConnexion = false;
+                        if (configapp.GetActiveNotification()) {
+                            if(OneNotification == true){
+                                NotificationGenerator.OpenActivityNotification(MainActivity.this);
+                                OneNotification = false;
+                            }
+                        }
+                    }
+                    /*Appel de la fonction pour verifier l'etat de la connexion*/
+                    EtatDeLaConnexion();
+
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    /*Processus de déconnexion*/
+                    try {
+                        bluetoothSocket.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                 }
-
-                myHandler.postDelayed(this, 5000);
             }
-        };
+
+        }).start();
+
     }
-    public void Connection(){
 
-        if (bluetoothSocket.isConnected() == false){
-            //bluetoothSocket = null;
-            try {
-                bluetoothSocket.connect();
-                Toast.makeText(MainActivity.this, "Je suis Connecté", Toast.LENGTH_SHORT).show();
-                //isConnectedBool = true;
-                //if (!bluetoothSocket.isConnected()){
-                //    NotificationGenerator.OpenActivityNotification(this);
-                //}
-            } catch (IOException e) {
-                //isConnectedBool = false;
-                Toast.makeText(MainActivity.this, "Je lis le Catch", Toast.LENGTH_SHORT).show();
-                try {
-                    bluetoothSocket.close();
-                    Toast.makeText(MainActivity.this, "Je Ferme le bluetooth", Toast.LENGTH_SHORT).show();
-                } catch (IOException f) {}
-
-            }
-            try {
-                Toast.makeText(MainActivity.this, "Je lis le temp", Toast.LENGTH_SHORT).show();
-                tmpIn = bluetoothSocket.getInputStream();
-                tmpOut = bluetoothSocket.getOutputStream();
-            }
-            catch (IOException tmpError){
-                NotificationGenerator.OpenActivityNotification(this);
-            }
-            return;
-
-        }
-
-    }*/
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }
+
