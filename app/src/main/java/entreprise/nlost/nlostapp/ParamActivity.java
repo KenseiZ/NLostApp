@@ -21,6 +21,9 @@ public class ParamActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.param_main);
+              Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+            
 
         notif = (Switch)findViewById(R.id.switch1);
 
