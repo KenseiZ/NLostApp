@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+
     }
     /*Verification de l'Etat des notifications et changement du texte de statut*/
     void BoucleEtatDesNotifications(){

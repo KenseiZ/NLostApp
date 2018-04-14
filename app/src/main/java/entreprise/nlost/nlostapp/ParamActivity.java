@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 
+import android.support.v7.widget.Toolbar;
+
 /**
  * Created by Bedino-Tom on 23/03/2018.
  */
@@ -21,10 +23,9 @@ public class ParamActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.param_main);
-              Toolbar toolbar = findViewById(R.id.toolbar);
+        setContentView(R.layout.param_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-            
-
         notif = (Switch)findViewById(R.id.switch1);
 
         ok = (Button)findViewById(R.id.button3);
